@@ -1,0 +1,47 @@
+{
+  "schemaVersion": 1,
+  "samples": [
+    {
+      "id": "clean-treadmill-01",
+      "fileName": "clean-treadmill-01.jpg",
+      "description": "Centered treadmill console, low glare, clean LED separation.",
+      "expectedOcrText": "TIME 12:30\nDIST 1.50\nCAL 145\nSPEED 7.20\nINCL 2.0",
+      "expectedParsedMetrics": {
+        "durationSeconds": 750,
+        "distanceKm": 1.5,
+        "caloriesKcal": 145,
+        "speedKph": 7.2,
+        "inclinePercent": 2.0
+      },
+      "tags": ["clean", "centered", "baseline"]
+    },
+    {
+      "id": "noisy-led-02",
+      "fileName": "noisy-led-02.jpg",
+      "description": "Noisy LED display with common OCR substitutions.",
+      "expectedOcrText": "T1ME 12.30\nDlST 1.5O\nCAL 145\nSPEED 7.2O\nINCL 2.O",
+      "expectedParsedMetrics": {
+        "durationSeconds": 750,
+        "distanceKm": 1.5,
+        "caloriesKcal": 145,
+        "speedKph": 7.2,
+        "inclinePercent": 2.0
+      },
+      "tags": ["noisy", "ocr-artifacts", "led"]
+    },
+    {
+      "id": "partial-panel-03",
+      "fileName": "partial-panel-03.jpg",
+      "description": "Partial crop where incline is missing from view.",
+      "expectedOcrText": "TIME 25:10\nDIST 3.25\nCAL 230\nSPEED 7.80",
+      "expectedParsedMetrics": {
+        "durationSeconds": 1510,
+        "distanceKm": 3.25,
+        "caloriesKcal": 230,
+        "speedKph": 7.8,
+        "inclinePercent": null
+      },
+      "tags": ["partial", "missing-field", "crop"]
+    }
+  ]
+}
