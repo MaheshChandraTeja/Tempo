@@ -8,21 +8,15 @@ Tempo turns treadmill display chaos into clean, trusted workout logs — fast. U
 
 ---
 
-## Table of contents
+<p align="center">
+  <img width="120" alt="image" src="https://github.com/user-attachments/assets/4cd4d8bb-e9ae-4190-b34a-ac7c2e6c2ede" />
+  <img width="120" alt="image" src="https://github.com/user-attachments/assets/6dc8b246-32f8-4fe0-95d7-977763c2d4e1" />
+  <img width="120" alt="image" src="https://github.com/user-attachments/assets/3aba3332-6d5a-404d-b36c-c88e9043827b" />
+  <img width="120" alt="image" src="https://github.com/user-attachments/assets/a127e0b3-69f9-4dce-b11c-15283c797a88" />
+  <img width="120" alt="image" src="https://github.com/user-attachments/assets/83a4fb9b-3596-48ca-b0d1-b5954a98662d" />
+  <img width="120" alt="image" src="https://github.com/user-attachments/assets/f75263a0-aef8-4e0c-bc05-aaedcbaa8a4c" />
+</p>
 
-- About Tempo
-- Why it matters
-- Highlights
-- How it works (high level)
-- Features
-- Technical pipeline
-- Example scan
-- Getting started
-- Developer notes (models & tests)
-- Contributing
-- Authors & Organization
-- Privacy & Data
-- License
 
 ---
 
