@@ -1,8 +1,15 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import {
-    Camera,
-    type CameraPermissionStatus,
+  VisionCamera,
+  type PermissionStatus as NativeCameraPermissionStatus,
 } from 'react-native-vision-camera';
+
+export type CameraPermissionStatus =
+  | 'unknown'
+  | 'granted'
+  | 'denied'
+  | 'blocked'
+  | 'unavailable';
 
 export type CameraPermissionState = Readonly<{
   status: CameraPermissionStatus;
@@ -19,30 +26,40 @@ export type CameraPermissionResult = Readonly<{
 }>;
 
 function toPermissionState(
-  status: CameraPermissionStatus,
+  nativeStatus: NativeCameraPermissionStatus,
 ): CameraPermissionState {
+  const isGranted = nativeStatus === 'authorized';
+  const isNotDetermined = nativeStatus === 'not-determined';
+  const isBlocked = nativeStatus === 'restricted';
+
   return {
-    status,
-    isGranted: status === 'granted',
-    isDenied: status === 'denied' || status === 'restricted',
-    isNotDetermined: status === 'not-determined',
-    canAskAgain: status === 'not-determined',
+    status: isGranted
+      ? 'granted'
+      : isBlocked
+      ? 'blocked'
+      : isNotDetermined
+      ? 'unknown'
+      : 'denied',
+    isGranted,
+    isDenied: nativeStatus === 'denied' || isBlocked,
+    isNotDetermined,
+    canAskAgain: isNotDetermined,
   };
 }
 
 export async function getCameraPermissionState(): Promise<CameraPermissionState> {
-  const status = await Camera.getCameraPermissionStatus();
+  const status = VisionCamera.cameraPermissionStatus;
   return toPermissionState(status);
 }
 
 export async function requestCameraPermissionState(): Promise<CameraPermissionState> {
-  const status = await Camera.requestCameraPermission();
-  return toPermissionState(status);
+  await VisionCamera.requestCameraPermission();
+  return getCameraPermissionState();
 }
 
 export function useCameraPermissionState(): CameraPermissionResult {
   const [state, setState] = useState<CameraPermissionState>({
-    status: 'not-determined',
+    status: 'unknown',
     isGranted: false,
     isDenied: false,
     isNotDetermined: true,

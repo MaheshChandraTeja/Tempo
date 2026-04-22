@@ -1,3 +1,4 @@
+import { icons } from '@/config/iconRegistry';
 import { SettingsScreen } from '@/features/settings/screens/SettingsScreen';
 import { HistoryStack } from '@/navigation/HistoryStack';
 import { LogStack } from '@/navigation/LogStack';
@@ -12,10 +13,24 @@ import { useAppTheme, type AppTheme } from '@/providers/ThemeProvider';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import React, { useMemo } from 'react';
-import { StyleSheet, Text, View } from 'react-native';
+import { Image, StyleSheet, Text, View } from 'react-native';
 
 const Tabs = createBottomTabNavigator<MainTabParamList>();
 const SettingsNativeStack = createNativeStackNavigator<SettingsStackParamList>();
+
+function renderTabIcon(
+  source: (typeof icons)[keyof typeof icons],
+  size: number,
+  color: string,
+): React.JSX.Element {
+  return (
+    <Image
+      source={source}
+      style={{ width: size, height: size, tintColor: color }}
+      resizeMode="contain"
+    />
+  );
+}
 
 function AppPreferencesScreen(): React.JSX.Element {
   const { theme } = useAppTheme();
@@ -109,50 +124,38 @@ export function MainTabs(): React.JSX.Element {
       <Tabs.Screen
         name={TAB_ROUTES.LOG_STACK}
         component={LogStack}
-        options={{ title: 'Today'/*,
-          tabBarIcon: ({ size, color }) => (
-          <Image
-            source={icons.tabToday}
-            style={{ width: size, height: size, tintColor: color }}
-            resizeMode="contain"
-          />
-        ),*/ }}
+        options={{
+          title: 'Today',
+          tabBarIcon: ({ size, color }) =>
+            renderTabIcon(icons.tabToday, size, color),
+        }}
       />
       <Tabs.Screen
         name={TAB_ROUTES.SCAN_STACK}
         component={ScanStack}
-        options={{ title: 'Scan'/*,
-          tabBarIcon: ({ size, color }) => (
-          <Image
-            source={icons.tabScan}
-            style={{ width: size, height: size, tintColor: color }}
-            resizeMode="contain"
-          />
-        ),*/ }}
+        options={{
+          title: 'Scan',
+          tabBarIcon: ({ size, color }) =>
+            renderTabIcon(icons.tabScan, size, color),
+        }}
       />
       <Tabs.Screen
         name={TAB_ROUTES.HISTORY_STACK}
         component={HistoryStack}
-        options={{ title: 'History'/*,
-          tabBarIcon: ({ size, color }) => (
-          <Image
-            source={icons.tabHistory}
-            style={{ width: size, height: size, tintColor: color }}
-            resizeMode="contain"
-          />
-        ),*/ }}
+        options={{
+          title: 'History',
+          tabBarIcon: ({ size, color }) =>
+            renderTabIcon(icons.tabHistory, size, color),
+        }}
       />
       <Tabs.Screen
         name={TAB_ROUTES.SETTINGS_STACK}
         component={SettingsStack}
-        options={{ title: 'Settings'/*,
-          tabBarIcon: ({ size, color }) => (
-          <Image
-            source={icons.tabSettings}
-            style={{ width: size, height: size, tintColor: color }}
-            resizeMode="contain"
-          />
-        ),*/ }}
+        options={{
+          title: 'Settings',
+          tabBarIcon: ({ size, color }) =>
+            renderTabIcon(icons.tabSettings, size, color),
+        }}
       />
     </Tabs.Navigator>
   );

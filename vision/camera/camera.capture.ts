@@ -1,8 +1,9 @@
 import type { RefObject } from 'react';
-import {
-    Camera,
-    type PhotoFile,
-    type TakePhotoOptions,
+import type {
+  CameraPhotoOutput,
+  CameraRef,
+  CapturePhotoSettings,
+  PhotoFile,
 } from 'react-native-vision-camera';
 
 export type CaptureStillPhotoOptions = Readonly<{
@@ -10,6 +11,11 @@ export type CaptureStillPhotoOptions = Readonly<{
   enableAutoDistortionCorrection?: boolean;
   enableAutoRedEyeReduction?: boolean;
   enableShutterSound?: boolean;
+}>;
+
+export type CaptureStillPhotoTarget = Readonly<{
+  cameraRef: RefObject<CameraRef | null | undefined>;
+  photoOutput: CameraPhotoOutput;
 }>;
 
 export type CaptureStillPhotoResult =
@@ -30,40 +36,43 @@ function normalizeCaptureError(error: unknown): string {
   return 'Failed to capture still photo.';
 }
 
-export function toTakePhotoOptions(
+export function toCapturePhotoSettings(
   options: CaptureStillPhotoOptions = {},
-): TakePhotoOptions {
+): CapturePhotoSettings {
   return {
-    flash: options.flash ?? 'off',
-    enableAutoDistortionCorrection:
+    flashMode: options.flash ?? 'off',
+    enableDistortionCorrection:
       options.enableAutoDistortionCorrection ?? true,
-    enableAutoRedEyeReduction:
+    enableRedEyeReduction:
       options.enableAutoRedEyeReduction ?? false,
     enableShutterSound: options.enableShutterSound ?? false,
   };
 }
 
 export function isCameraReady(
-  cameraRef: RefObject<Camera | null | undefined>,
+  target: CaptureStillPhotoTarget,
 ): boolean {
-  return cameraRef.current != null;
+  return target.cameraRef.current?.controller != null;
 }
 
 export async function captureStillPhoto(
-  cameraRef: RefObject<Camera | null | undefined>,
+  target: CaptureStillPhotoTarget,
   options: CaptureStillPhotoOptions = {},
 ): Promise<CaptureStillPhotoResult> {
   try {
-    const camera = cameraRef.current;
+    const camera = target.cameraRef.current;
 
-    if (!camera) {
+    if (!camera?.controller) {
       return {
         ok: false,
         error: 'Camera is not ready.',
       };
     }
 
-    const photo = await camera.takePhoto(toTakePhotoOptions(options));
+    const photo = await target.photoOutput.capturePhotoToFile(
+      toCapturePhotoSettings(options),
+      {},
+    );
 
     return {
       ok: true,

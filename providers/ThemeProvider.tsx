@@ -1,4 +1,9 @@
 import { darkThemeColors, lightThemeColors } from '@/theme/colors';
+import {
+  PREFERENCE_KEYS,
+  getPreferenceString,
+  setPreferenceString,
+} from '@/storage/kv/preferences';
 import React, {
   createContext,
   useCallback,
@@ -40,6 +45,10 @@ type ThemeContextValue = Readonly<{
 
 const ThemeContext = createContext<ThemeContextValue | undefined>(undefined);
 
+function isThemeMode(value: string): value is ThemeMode {
+  return value === 'system' || value === 'light' || value === 'dark';
+}
+
 function resolveSystemScheme(
   scheme: ColorSchemeName,
 ): Exclude<ColorSchemeName, null> {
@@ -66,6 +75,7 @@ export function ThemeProvider({
 }: PropsWithChildren): React.JSX.Element {
   const deviceScheme = useColorScheme();
   const [mode, setMode] = useState<ThemeMode>('system');
+  const [hasHydratedMode, setHasHydratedMode] = useState(false);
   const [systemScheme, setSystemScheme] = useState<
     Exclude<ColorSchemeName, null>
   >(resolveSystemScheme(deviceScheme));
@@ -73,6 +83,26 @@ export function ThemeProvider({
   useEffect(() => {
     setSystemScheme(resolveSystemScheme(deviceScheme));
   }, [deviceScheme]);
+
+  useEffect(() => {
+    let isMounted = true;
+
+    void (async () => {
+      const storedMode = await getPreferenceString(PREFERENCE_KEYS.themeMode);
+
+      if (isMounted && storedMode && isThemeMode(storedMode)) {
+        setMode(storedMode);
+      }
+
+      if (isMounted) {
+        setHasHydratedMode(true);
+      }
+    })();
+
+    return () => {
+      isMounted = false;
+    };
+  }, []);
 
   useEffect(() => {
     const subscription = Appearance.addChangeListener(({ colorScheme }) => {
@@ -83,6 +113,14 @@ export function ThemeProvider({
       subscription.remove();
     };
   }, []);
+
+  useEffect(() => {
+    if (!hasHydratedMode) {
+      return;
+    }
+
+    void setPreferenceString(PREFERENCE_KEYS.themeMode, mode);
+  }, [hasHydratedMode, mode]);
 
   const toggleTheme = useCallback(() => {
     setMode(current => {

@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { Alert, StyleSheet, Switch, Text, View } from 'react-native';
 
 import { AppButton } from '@/components/common/AppButton';
@@ -35,7 +35,7 @@ import { spacing } from '@/theme/spacing';
 import { typography } from '@/theme/typography';
 
 export function SettingsScreen(): React.JSX.Element {
-  const { theme } = useAppTheme();
+  const { theme, setMode } = useAppTheme();
   const styles = useMemo(() => createStyles(theme), [theme]);
 
   const settings = useSettingsState();
@@ -43,6 +43,11 @@ export function SettingsScreen(): React.JSX.Element {
 
   const [permissionAuditText, setPermissionAuditText] = useState<string>('Auditing permissions...');
   const policySummary = useMemo(() => getLocalDataPolicySummary(), []);
+
+  const refreshPermissionAudit = useCallback(async () => {
+    const audit = await auditPermissions();
+    setPermissionAuditText(summarizePermissionAudit(audit));
+  }, []);
 
   useEffect(() => {
     void (async () => {
@@ -53,11 +58,8 @@ export function SettingsScreen(): React.JSX.Element {
       }
     })();
 
-    void (async () => {
-      const audit = await auditPermissions();
-      setPermissionAuditText(summarizePermissionAudit(audit));
-    })();
-  }, []);
+    void refreshPermissionAudit();
+  }, [refreshPermissionAudit]);
 
   const handleExport = async () => {
     settingsStore.startExport();
@@ -126,6 +128,10 @@ export function SettingsScreen(): React.JSX.Element {
     await setPreferenceBoolean(PREFERENCE_KEYS.debugModeEnabled, value);
   };
 
+  const handleDarkModeToggle = (value: boolean) => {
+    setMode(value ? 'dark' : 'light');
+  };
+
   return (
     <Screen scrollable>
       <AppHeader
@@ -140,7 +146,7 @@ export function SettingsScreen(): React.JSX.Element {
         <Text style={styles.description}>{describeLocalOnlyBehavior()}</Text>
       </AppCard>
 
-      <CameraPermissionRow />
+      <CameraPermissionRow onChanged={refreshPermissionAudit} />
 
       <AppCard>
         <Text style={styles.title}>Permission Audit</Text>
@@ -152,6 +158,22 @@ export function SettingsScreen(): React.JSX.Element {
         lastExportedAt={settings.lastExportedAt}
         onExportPress={handleExport}
       />
+
+      <AppCard>
+        <View style={styles.row}>
+          <View style={styles.textWrap}>
+            <Text style={styles.title}>Dark Mode</Text>
+            <Text style={styles.description}>
+              Switch the app between light and dark appearance for a calmer low-glare interface.
+            </Text>
+          </View>
+
+          <Switch
+            onValueChange={handleDarkModeToggle}
+            value={theme.isDark}
+          />
+        </View>
+      </AppCard>
 
       <AppCard>
         <View style={styles.row}>

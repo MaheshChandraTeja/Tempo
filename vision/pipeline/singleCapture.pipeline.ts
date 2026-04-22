@@ -1,9 +1,13 @@
 import type { RefObject } from 'react';
-import type { PhotoFile } from 'react-native-vision-camera';
+import type {
+  CameraPhotoOutput,
+  CameraRef,
+  PhotoFile,
+} from 'react-native-vision-camera';
 
 import {
-    captureStillPhoto,
-    type CaptureStillPhotoOptions,
+  captureStillPhoto,
+  type CaptureStillPhotoOptions,
 } from '@/vision/camera/camera.capture';
 import type { ScanPipeline, ScanPipelineResult } from '@/vision/pipeline/scan.pipeline';
 
@@ -15,7 +19,8 @@ export type SingleCaptureInput =
     }>
   | Readonly<{
       kind: 'camera-ref';
-      cameraRef: RefObject<Camera | null | undefined>;
+      cameraRef: RefObject<CameraRef | null | undefined>;
+      photoOutput: CameraPhotoOutput;
       photoOptions?: CaptureStillPhotoOptions;
       captureDebugLabel?: string;
     }>;
@@ -27,11 +32,20 @@ export type SingleCapturePipeline = Readonly<{
 function photoFileToOcrSource(photo: PhotoFile) {
   return {
     kind: 'photo-file' as const,
-    path: photo.path,
-    width: photo.width,
-    height: photo.height,
+    path: photo.filePath,
     mimeType: 'image/jpeg',
   };
+}
+
+function createScanPipelineInput(
+  photo: PhotoFile,
+  captureDebugLabel?: string,
+) {
+  const source = photoFileToOcrSource(photo);
+
+  return captureDebugLabel == null
+    ? { source }
+    : { source, captureDebugLabel };
 }
 
 export function createSingleCapturePipeline(
@@ -40,14 +54,16 @@ export function createSingleCapturePipeline(
   return Object.freeze({
     async run(input: SingleCaptureInput): Promise<ScanPipelineResult> {
       if (input.kind === 'photo-file') {
-        return scanPipeline.run({
-          source: photoFileToOcrSource(input.photo),
-          captureDebugLabel: input.captureDebugLabel,
-        });
+        return scanPipeline.run(
+          createScanPipelineInput(input.photo, input.captureDebugLabel),
+        );
       }
 
       const captureResult = await captureStillPhoto(
-        input.cameraRef,
+        {
+          cameraRef: input.cameraRef,
+          photoOutput: input.photoOutput,
+        },
         input.photoOptions,
       );
 
@@ -65,10 +81,12 @@ export function createSingleCapturePipeline(
         };
       }
 
-      return scanPipeline.run({
-        source: photoFileToOcrSource(captureResult.photo),
-        captureDebugLabel: input.captureDebugLabel,
-      });
+      return scanPipeline.run(
+        createScanPipelineInput(
+          captureResult.photo,
+          input.captureDebugLabel,
+        ),
+      );
     },
   });
 }

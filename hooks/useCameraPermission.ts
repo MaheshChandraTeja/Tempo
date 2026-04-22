@@ -1,7 +1,7 @@
 import { useCallback, useMemo } from 'react';
 
-import { usePermissions } from '@/providers/PermissionsProvider';
 import type { CameraPermissionState, PermissionStatus } from '@/types/common';
+import { useCameraPermissionState } from '@/vision/camera/camera.permissions';
 
 type UseCameraPermissionResult = Readonly<{
   permission: CameraPermissionState;
@@ -9,34 +9,34 @@ type UseCameraPermissionResult = Readonly<{
   request: () => Promise<PermissionStatus>;
 }>;
 
-function mapCameraPermission(status: PermissionStatus): CameraPermissionState {
+function mapCameraPermission(
+  status: ReturnType<typeof useCameraPermissionState>['state'],
+): CameraPermissionState {
   return {
-    status,
-    canAskAgain: status !== 'blocked' && status !== 'unavailable',
-    isGranted: status === 'granted',
-    isDenied: status === 'denied',
-    isBlocked: status === 'blocked',
-    isUnavailable: status === 'unavailable',
+    status: status.status,
+    canAskAgain: status.canAskAgain,
+    isGranted: status.isGranted,
+    isDenied: status.isDenied && status.status === 'denied',
+    isBlocked: status.status === 'blocked',
+    isUnavailable: status.status === 'unavailable',
   };
 }
 
 export function useCameraPermission(): UseCameraPermissionResult {
-  const { permissions, refreshPermission, requestPermission } = usePermissions();
-
-  const currentStatus = permissions.camera;
+  const { state, refresh: refreshState, request: requestState } =
+    useCameraPermissionState();
 
   const refresh = useCallback(async () => {
-    return refreshPermission('camera');
-  }, [refreshPermission]);
+    const next = await refreshState();
+    return next.status;
+  }, [refreshState]);
 
   const request = useCallback(async () => {
-    return requestPermission('camera');
-  }, [requestPermission]);
+    const next = await requestState();
+    return next.status;
+  }, [requestState]);
 
-  const permission = useMemo(
-    () => mapCameraPermission(currentStatus),
-    [currentStatus],
-  );
+  const permission = useMemo(() => mapCameraPermission(state), [state]);
 
   return {
     permission,

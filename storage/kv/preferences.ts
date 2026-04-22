@@ -5,6 +5,7 @@ const PREFERENCE_PREFIX = 'tempo:pref:';
 export const PREFERENCE_KEYS = Object.freeze({
   calorieGoalKcal: 'calorieGoalKcal',
   debugModeEnabled: 'debugModeEnabled',
+  themeMode: 'themeMode',
 } as const);
 
 function key(name: string): string {

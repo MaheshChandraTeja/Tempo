@@ -9,6 +9,7 @@ import { typography } from '@/theme/typography';
 
 type CameraPermissionRowProps = Readonly<{
   isBusy?: boolean;
+  onChanged?: () => void | Promise<void>;
 }>;
 
 function getPermissionLabel(status: ReturnType<typeof useCameraPermission>['permission']['status']): string {
@@ -29,6 +30,7 @@ function getPermissionLabel(status: ReturnType<typeof useCameraPermission>['perm
 
 export function CameraPermissionRow({
   isBusy = false,
+  onChanged,
 }: CameraPermissionRowProps): React.JSX.Element {
   const { theme } = useAppTheme();
   const styles = useMemo(() => createStyles(theme), [theme]);
@@ -57,7 +59,12 @@ export function CameraPermissionRow({
         <View style={styles.actions}>
           <Pressable
             accessibilityRole="button"
-            onPress={() => void refresh()}
+            onPress={() => {
+              void (async () => {
+                await refresh();
+                await onChanged?.();
+              })();
+            }}
             style={({ pressed }) => [styles.actionButton, pressed && styles.pressed]}
           >
             <Text style={styles.actionLabel}>Refresh</Text>
@@ -66,7 +73,12 @@ export function CameraPermissionRow({
           <Pressable
             accessibilityRole="button"
             disabled={isBusy || !permission.canAskAgain}
-            onPress={() => void request()}
+            onPress={() => {
+              void (async () => {
+                await request();
+                await onChanged?.();
+              })();
+            }}
             style={({ pressed }) => [
               styles.actionButton,
               !permission.canAskAgain && styles.disabled,

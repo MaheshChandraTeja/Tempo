@@ -1,9 +1,10 @@
 import { useMemo } from 'react';
 import {
-    getAllCameraDevices,
-    getCameraDevice,
-    type CameraDevice,
-    type CameraPosition,
+  getAllCameraDevices,
+  getCameraDevice,
+  type CameraDevice,
+  type CameraPosition,
+  type PhysicalDeviceType,
 } from 'react-native-vision-camera';
 
 export type CameraDevicePreference = Readonly<{
@@ -11,11 +12,11 @@ export type CameraDevicePreference = Readonly<{
   /**
    * Prefer a simpler physical camera for faster startup.
    * Example values seen in VisionCamera docs include:
-   * - 'wide-angle-camera'
-   * - 'ultra-wide-angle-camera'
-   * - 'telephoto-camera'
+   * - 'wide-angle'
+   * - 'ultra-wide-angle'
+   * - 'telephoto'
    */
-  preferredPhysicalDevices?: string[];
+  preferredPhysicalDevices?: PhysicalDeviceType[];
   allowExternal?: boolean;
 }>;
 
@@ -32,13 +33,15 @@ export type CameraDeviceSummary = Readonly<{
 
 function getFallbackOrder(
   preference: CameraDevicePreference,
-): ReadonlyArray<readonly [CameraPosition, string[] | undefined]> {
+): ReadonlyArray<readonly [CameraPosition, PhysicalDeviceType[] | undefined]> {
   const position = preference.position ?? 'back';
   const preferredPhysicalDevices = preference.preferredPhysicalDevices;
 
-  const base: Array<readonly [CameraPosition, string[] | undefined]> = [
+  const base: Array<
+    readonly [CameraPosition, PhysicalDeviceType[] | undefined]
+  > = [
     [position, preferredPhysicalDevices],
-    [position, ['wide-angle-camera']],
+    [position, ['wide-angle']],
     [position, undefined],
   ];
 
@@ -56,9 +59,9 @@ export function selectPreferredCameraDevice(
   const fallbackOrder = getFallbackOrder(preference);
 
   for (const [position, physicalDevices] of fallbackOrder) {
-    const device = getCameraDevice(devices, position, {
-      physicalDevices,
-    });
+    const filter =
+      physicalDevices == null ? undefined : { physicalDevices };
+    const device = getCameraDevice([...devices], position, filter);
 
     if (device) {
       return device;
@@ -80,24 +83,27 @@ export function summarizeCameraDevice(
 ): CameraDeviceSummary {
   return {
     id: device.id,
-    name: device.name,
+    name: device.localizedName,
     position: device.position,
     physicalDeviceCount: device.physicalDevices.length,
     supportsLowLightBoost: device.supportsLowLightBoost ?? false,
-    supportsFocus: device.minFocusDistance != null,
+    supportsFocus:
+      device.supportsFocusMetering ||
+      device.supportsFocusLocking ||
+      device.supportsSmoothAutoFocus,
     hasFlash: device.hasFlash ?? false,
-    formatCount: device.formats.length,
+    formatCount: device.supportedPixelFormats.length,
   };
 }
 
 export function usePreferredCameraDevice(
   preference: CameraDevicePreference = {},
 ): CameraDevice | null {
-  const stablePreference = useMemo(
+  const stablePreference = useMemo<CameraDevicePreference>(
     () => ({
       position: preference.position ?? 'back',
       preferredPhysicalDevices:
-        preference.preferredPhysicalDevices ?? ['wide-angle-camera'],
+        preference.preferredPhysicalDevices ?? ['wide-angle'],
       allowExternal: preference.allowExternal ?? false,
     }),
     [
