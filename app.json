@@ -1,8 +1,7 @@
 {
   "expo": {
     "name": "Tempo",
-    "displayName": "Tempo",
-    "slug": "Tempo",
+    "slug": "tempo",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
@@ -24,8 +23,10 @@
       },
       "edgeToEdgeEnabled": true,
       "predictiveBackGestureEnabled": false,
-      "package": "com.anonymous.Tempo",
-      "permissions": ["android.permission.CAMERA"]
+      "package": "com.kairais.tempo",
+      "permissions": [
+        "android.permission.CAMERA"
+      ]
     },
     "web": {
       "output": "static",
@@ -45,11 +46,18 @@
           }
         }
       ],
-      "expo-sqlite"
+      "expo-sqlite",
+      "expo-web-browser"
     ],
     "experiments": {
       "typedRoutes": true,
       "reactCompiler": true
+    },
+    "extra": {
+      "router": {},
+      "eas": {
+        "projectId": "3cd19e44-dc65-4ebb-9608-f3b8c0058052"
+      }
     }
   }
 }
